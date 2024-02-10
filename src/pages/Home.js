@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 
-function App() {
+function Home() {
   const [todos, setTodos] = useState([]);
   const [input, setInput] = useState("");
   const completedcount = useMemo(() => {
@@ -188,4 +188,4 @@ function App() {
   );
 }
 
-export default App;
+export default Home;
