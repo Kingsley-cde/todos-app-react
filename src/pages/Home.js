@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 
 function Home() {
   const [todos, setTodos] = useState([]);
   const [input, setInput] = useState("");
+  const [url, setUrl] = useState("http://localhost:8080/todos");
   const completedcount = useMemo(() => {
     return todos.filter((element) => element.completed).length;
   }, [todos]);
@@ -38,12 +39,19 @@ function Home() {
   }
   const checkboxChange = (id) => {
     const newTodo = todos.map((element) => {
-      if (element.id === id)
-        return {
-          ...element,
-          completed: !element.completed,
-        };
-      return element;
+      if (element.id === id) {
+        let updatedtodo = fetch("http://localhost:8080/todos/" + element.id, {
+          method: "PUT",
+          body: JSON.stringify({ ...element, completed: !element.completed }),
+          headers: { "Content-Type": "application/json" },
+        }).then(() => {
+          return {
+            ...element,
+            completed: !element.completed,
+          };
+        });
+        return updatedtodo;
+      } else return element;
     });
     setTodos(newTodo);
   };
@@ -57,17 +65,23 @@ function Home() {
     setTodos([]);
   }
   function deletedonetasks() {
-    const deleteDone = todos.filter((element) => !element.completed);
-    setTodos(deleteDone);
+    const deleteDone = todos.forEach((element) => {
+      if (element.completed) {
+        fetch("http://localhost:8080/todos/" + element.id, {
+          method: "DELETE",
+        }).then(() => console.log("todo removed"));
+      }
+    });
+    setTodos(todos.filter((element) => !element.completed));
   }
-  function fetchdata() {
-    fetch("http://localhost:8080/todos")
+  const fetchdata = useCallback(() => {
+    fetch(url)
       .then((response) => response.json())
       .then((data) => setTodos(data));
-  }
+  }, [url]);
   useEffect(() => {
     fetchdata();
-  }, []);
+  }, [todos]);
   return (
     <div className="App">
       <h1>TodoInput</h1>
